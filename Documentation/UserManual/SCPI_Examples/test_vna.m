@@ -24,7 +24,7 @@ wrt_cmmd(p,":VNA:ACQ:AVG 1\n");
 acq_points = 501;
 wrt_cmmd_value(p,":VNA:ACQ:POINTS", acq_points);
 
-fmin=100E3;
+fmin=1E6;
 wrt_cmmd_value(p,":VNA:FREQuency:START", fmin);
 
 fmax = 6000E6;
@@ -38,36 +38,53 @@ wrt_cmmd_resp_true(p,[":VNA:CALibration:LOAD? ",calibration_filename,"\n"]);
 
 vna_disconnect(p);
 
-
+# Plot trace width
+linewidth=1.5;
+fontsize=12;
 
 # Plot mag (in dB) and phase (in degrees)
-subplot(4,1,1);
-plot(f,20*log10(abs(Z))); # dB
+figure(1);
+subplot(3,1,1);
+plot(f,20*log10(abs(Z)),"linewidth", linewidth); # dB
 axis([-Inf,Inf, -Inf, Inf]);
-xlabel ("Frequency");
-ylabel ("S11 DB");
+xlabel ("Frequency","fontsize",fontsize);
+ylabel ("S11 dB","fontsize",fontsize);
 axis([-Inf,Inf,-Inf,Inf]);
+title ("S11 Mag","fontsize",fontsize+2);
+grid on;
 
 # Phase in degrees
-subplot(4,1,2);
-plot(f,180/pi*angle(Z));
-xlabel ("Frequency");
-ylabel ("S11 (deg)");
+subplot(3,1,2);
+plot(f,180/pi*angle(Z),"linewidth", linewidth);
+xlabel ("Frequency","fontsize",fontsize);
+ylabel ("S11 (deg)","fontsize",fontsize);
 axis([-Inf,Inf,-180,180]);
+title ("S11 Phase","fontsize",fontsize+2);
+grid on;
 
 # Z Im vs Re, zoom in 10x to check noise.
-subplot(4,1,3);
-plot(Z,"+"); # plot with '+' since dot is so small.
-xlabel ("Zre");
-ylabel ("Zim");
+subplot(3,1,3);
+plot(Z,"linewidth", linewidth); # plot with '+' since dot is so small.
+
+xlabel ("Zre","fontsize",fontsize);
+ylabel ("Zim","fontsize",fontsize);
 pscale = 1.0; # Allow zoom in to 50 ohm point to check noise, normally 1.0
 axis([-pscale,pscale,-pscale,pscale],"square");
+title ("Polar","fontsize",fontsize+2);
+grid on;
 
+figure(2);
 # TDR
 tstep = 1E9/fmax; # scl in ns
 X = tstep*(1:acq_points/2);  # time scale
 Y = ifft(Z);
-
-subplot(4,1,4);
-#plot(X, 20*log10(abs(Y(1:acq_points/2))));  # dB mag
-plot(X, real(Y(1:acq_points/2)));  # dB mag
+subplot(1,1,1);
+plot(X, 20*log10(abs(Y(1:acq_points/2))),"linewidth", linewidth);  # dB mag
+#plot(X, real(Y(1:acq_points/2)), "linewidth", linewidth);
+#plot(X, imag(Y(1:acq_points/2)), "linewidth", linewidth);
+#plot(X,(180/pi)*angle(Y(1:acq_points/2)),"linewidth", linewidth);
+title ("TDR","fontsize",fontsize+2);
+xlabel ("ns","fontsize",fontsize);
+ylabel ("dB","fontsize",fontsize);
+grid on;
+grid minor on;
